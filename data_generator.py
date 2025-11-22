@@ -18,6 +18,12 @@ def parse_arguments():
         help = "Directory where the output Pandas dataframes will be stored",
         type=str,
     )
+    parser.add_argument(
+        "--resolution",
+        default = 64,
+        help = "How many cubes the object will be divided into (resolution x resolution x resolution)",
+        type=int,
+    )
     flags = parser.parse_args()
 
     return flags
@@ -54,7 +60,9 @@ def main():
     )
     data_with_object.to_csv(os.path.join(flags.output_directory, "theta_phi_with_object.csv"), index=False)
 
-    random_object = generate_random_object()
+    random_object = generate_random_object(
+        resolution = flags.resolution
+    )
     np.savez(os.path.join(flags.output_directory, "object_densities.npz"), random_object)
 
 
