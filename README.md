@@ -30,3 +30,7 @@ The inputs to the model training are the following:
 - 3D array of object densities (this is the training label)
 
 The model will output a 3D array to try to match the 3D object densities.
+
+To generate data randomly, you can use `data_generator.py`. This generates random theta-phi data and an object of size resolution^3 with random densities.
+
+The data is then processed `data_processor.py`. This script puts the theta phi into a 2D histogram with ratios of counts with object to counts without object in each bin.
