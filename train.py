@@ -2,14 +2,14 @@
 import os
 import numpy as np
 import tensorflow as tf
-from model import Transmission3DRecon  # import your model script
+from model import Agg3D  # import your model script
 
 # --------------------------
 # Config
 # --------------------------
 INPUT_DIR = "./"      # where your .npz files are
 BATCH_SIZE = 2
-EPOCHS = 5
+EPOCHS = 2
 LEARNING_RATE = 1e-3
 RESOLUTION = 64
 
@@ -34,27 +34,29 @@ density = density[np.newaxis, ..., np.newaxis]  # add batch and channel dims
 # Create tf.data.Dataset
 # --------------------------
 dataset = tf.data.Dataset.from_tensor_slices((transmission, density))
-dataset = dataset.shuffle(buffer_size=1).batch(BATCH_SIZE)
+dataset = dataset.batch(BATCH_SIZE)
 
 # --------------------------
 # Build model
 # --------------------------
-model = Transmission3DRecon(resolution=RESOLUTION)
+model = Agg3D(**{
+            'downward_convs': [1, 2, 3, 4, 5],
+            'downward_filters': [8, 16, 32, 64, 128],
+            'upward_convs': [4, 3, 2, 1],
+            'upward_filters': [64, 32, 16, 8],
+            'resolution': 64,
+        })
 
 # Compile
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-    loss="mse",
-    metrics=["mae"]
-)
+        optimizer=tf.keras.optimizers.AdamW(learning_rate=LEARNING_RATE), 
+        loss="mse", metrics=["mse", "mae"]
+    )
 
 # --------------------------
 # Train
 # --------------------------
 model.fit(dataset, epochs=EPOCHS)
-
-# --------------------------
-# Save model
-# --------------------------
-model.save(os.path.join(INPUT_DIR, "transmission3d_model"))
-print("Model saved.")
+model.evaluate(dataset)
+y_pred = model.predict(dataset)
+print(y_pred)
